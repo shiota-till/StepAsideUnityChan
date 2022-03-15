@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UnityChanController : MonoBehaviour
 {
@@ -28,6 +29,24 @@ public class UnityChanController : MonoBehaviour
     //ゲーム終了の判定
     private bool isEnd = false;
 
+    //ゲーム終了時に表示するテキスト
+    private GameObject stateText;
+
+    //スコアを表示するテキスト
+    private GameObject scoreText;
+
+    //得点
+    private int score = 0;
+
+    //左ボタン押下の判定
+    private bool isLButtonDown = false;
+
+    //右ボタン押下の判定
+    private bool isRButtonDown = false;
+
+    //Jumpボタン押下の判定
+    private bool isJButtonDown = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -39,6 +58,12 @@ public class UnityChanController : MonoBehaviour
 
         //Rigidbodyコンポーネントを取得
         this.myRigidbody = GetComponent<Rigidbody>();
+
+        //シーン中のstateTextオブジェクトを取得
+        this.stateText = GameObject.Find("GameResultText");
+
+        //シーン中のstateTextオブジェクトを取得
+        this.scoreText = GameObject.Find("ScoreText");
     }
 
     // Update is called once per frame
@@ -60,17 +85,17 @@ public class UnityChanController : MonoBehaviour
         float inputVelocityY = 0;
 
         //Unityちゃんを矢印キーまたはボタンに応じて左右に移動させる
-        if (Input.GetKey(KeyCode.LeftArrow) && -this.movebleRange < this.transform.position.x)
+        if ((Input.GetKey(KeyCode.LeftArrow) || this.isLButtonDown ) && -this.movebleRange < this.transform.position.x)
         {
             inputVelocityX = -this.velocityX;
         }
-        else if (Input.GetKey(KeyCode.RightArrow) && this.movebleRange > this.transform.position.x)
+        else if ((Input.GetKey(KeyCode.RightArrow) || this.isRButtonDown ) && this.movebleRange > this.transform.position.x)
         {
             inputVelocityX = this.velocityX;
         }
 
         //ジャンプしていない時にスペースが押されたらジャンプする
-        if (Input.GetKeyDown(KeyCode.Space) && this.transform.position.y < 0.5f)
+        if ((Input.GetKeyDown(KeyCode.Space) || this.isJButtonDown ) && this.transform.position.y < 0.5f)
         {
             //ジャンプアニメを再生
             this.myAnimator.SetBool("Jump", true);
@@ -100,22 +125,56 @@ public class UnityChanController : MonoBehaviour
             other.gameObject.tag == "TrafficConeTag")
         {
             this.isEnd = true;
+            //stateTextにGAME OVERを表示
+            this.stateText.GetComponent<Text>().text = "GAME OVER";
         }
 
         //ゴール地点に到達した場合
         if (other.gameObject.tag == "GoalTag")
         {
             this.isEnd = true;
+            //stateTextにCLEARを表示
+            this.stateText.GetComponent<Text>().text = "CLEAR!!";
         }
 
         //コインに衝突した場合
         if (other.gameObject.tag == "CoinTag")
         {
+            //得点を加算
+            this.score += 10;
+
+            //ScoreTextに獲得した点数を表示
+            this.scoreText.GetComponent<Text>().text = "Score " + this.score + "pt";
+
             //パーティクルを再生
             GetComponent<ParticleSystem>().Play();
 
             //接触したコインのオブジェクトを破棄
             Destroy(other.gameObject);
         }
+    }
+    public void GetMyJumpButtonDown()　//ジャンプボタンを押した場合の処理
+    {
+        this.isJButtonDown = true;
+    }
+    public void GetMyJumpButtonUp()　//ジャンプボタンを離した場合の処理
+    {
+        this.isJButtonDown = false;
+    }
+    public void GetMyLeftButtonDown()　//左ボタンを押し続けた場合の処理
+    {
+        this.isLButtonDown = true;
+    }
+    public void GetMyLeftButtonUp()　//左ボタンを離した場合の処理
+    {
+        this.isLButtonDown = false;
+    }
+    public void GetMyRightButtonDown()　//右ボタンを押し続けた場合の処理
+    {
+        this.isRButtonDown = true;
+    }
+    public void GetMyRightButtonUp()　//右ボタンを離した場合の処理
+    {
+        this.isRButtonDown = false;
     }
 }
